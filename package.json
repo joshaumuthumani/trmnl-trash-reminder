@@ -1,0 +1,8 @@
+{
+    "name": "trmnl-trash-reminder",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "dependencies": { "dayjs": "^1.11.13" },
+    "engines": { "node": ">=18" }
+  }
