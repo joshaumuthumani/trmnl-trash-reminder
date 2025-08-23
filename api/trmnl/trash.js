@@ -44,8 +44,7 @@ export default function handler(req, res) {
   const localNow = dateOverride ? dayjs.tz(dateOverride, TZ) : nowLocal();
   const updatedAt = localNow.format("MMM D, h:mm a");
 
-  if (!forceActive && !isWithinActiveWindow(localNow)) {
-    const inactive = `<!doctype html>
+  const inactive = `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -64,11 +63,6 @@ export default function handler(req, res) {
     </div>
   </body>
 </html>`;
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "no-store, must-revalidate");
-    res.status(200).send(inactive);
-    return;
-  }
 
   const recycle = force === "recycle" ? true : isRecycleSunday(localNow);
   const label = recycle ? "Trash + Recycle" : "Trash";
@@ -119,7 +113,43 @@ export default function handler(req, res) {
   </body>
 </html>`;
 
+  // --- Fragment support for TRMNL Private Plugins ---
+  const isFragment = String(req.query.fragment || "") === "1";
+  const activeNow = forceActive || isWithinActiveWindow(localNow);
+
+  const fragment = `\
+<div class="screen">
+  <div class="view view--full">
+    <div class="layout wrap">
+      <div class="stack">
+        <div class="icons">${icon}</div>
+        <div class="title">${label}</div>
+        <div class="subtitle">Sun ${String(ACTIVE_START.hour)}:${String(ACTIVE_START.minute).padStart(2,"0")}–${String(ACTIVE_END.hour)}:${String(ACTIVE_END.minute).padStart(2,"0")} • Updated ${updatedAt}</div>
+      </div>
+    </div>
+    <div class="title_bar">
+      <span class="title">Pickup</span>
+      <span class="instance">Sunday</span>
+    </div>
+  </div>
+</div>`;
+
+  const fragmentInactive = `\
+<div class="screen">
+  <div class="view view--full">
+    <div class="layout"></div>
+    <div class="title_bar">
+      <span class="title">Pickup</span>
+      <span class="instance">Inactive</span>
+    </div>
+  </div>
+</div>`;
+
+  const out = isFragment
+    ? (activeNow ? fragment : fragmentInactive)
+    : (activeNow ? html : inactive);
+
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store, must-revalidate");
-  res.status(200).send(html);
+  res.status(200).send(out);
 }
