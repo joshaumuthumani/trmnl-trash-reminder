@@ -1,1 +1,6 @@
-{ "rewrites": [ { "source": "/trmnl/trash", "destination": "/api/trmnl/trash" } ] }
+{
+  "rewrites": [
+    { "source": "/trmnl/trash", "destination": "/api/trmnl/trash" },
+    { "source": "/trmnl/fragment/trash", "destination": "/api/trmnl/fragment/trash" }
+  ]
+}
