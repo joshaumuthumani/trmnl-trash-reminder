@@ -162,25 +162,28 @@ export default function handler(req, res) {
   if (isFragment) {
     const fragmentHtml = activeNow ? fragment : fragmentInactive;
     const htmlOut = fragmentHtml;
+    const aliases = String(req.query.aliases || "") === "1"; // add extra keys only when requested
     const body = {
-      ok: true,
-      type: "fragment",
-      mime_type: "text/html",
       html: htmlOut,
-      // Common aliases used by various loaders
-      body: htmlOut,
-      fragment: htmlOut,
-      content: htmlOut,
-      data: { html: htmlOut },
+      refresh_rate: 300,
+      updated_at: updatedAt,
       ...(b64
         ? { html_base64: Buffer.from(htmlOut, "utf8").toString("base64"), encoding: "base64" }
         : {}),
-      // Refresh timing aliases
-      refresh_rate: 300,
-      refresh_interval: 300,
-      ttl: 300,
-      updated_at: updatedAt,
-      version: 1,
+      ...(aliases
+        ? {
+            ok: true,
+            type: "fragment",
+            mime_type: "text/html",
+            body: htmlOut,
+            fragment: htmlOut,
+            content: htmlOut,
+            data: { html: htmlOut },
+            refresh_interval: 300,
+            ttl: 300,
+            version: 1,
+          }
+        : {}),
       ...(diag
         ? {
             diag: {
@@ -202,7 +205,7 @@ export default function handler(req, res) {
                 is_active_now: activeNow,
               },
               recycle: recycle,
-              html_length: fragmentHtml.length,
+              html_length: htmlOut.length,
             },
           }
         : {}),
