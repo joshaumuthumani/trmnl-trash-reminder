@@ -38,6 +38,7 @@ function isRecycleSunday(d = nowLocal()) {
 }
 
 export default function handler(req, res) {
+  const method = (req.method || "GET").toUpperCase();
   const force = String(req.query.force || "").toLowerCase();  // "recycle"
   const forceActive = String(req.query.active || "") === "1";  // preview
   const dateOverride = req.query.date;                         // YYYY-MM-DD
@@ -77,7 +78,12 @@ export default function handler(req, res) {
       <line x1="84" y1="48" x2="84" y2="108" stroke="#000" stroke-width="4"/>
     </svg>`;
 
-  const IMG_RECYCLE = `<img src="/recycle.svg?v=2" alt="Recycle" width="160" height="160" />`;
+  // Build absolute URL for assets to work in fragment renders
+  const forwardedProto = req.headers["x-forwarded-proto"] || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers["host"] || "";
+  const origin = host ? `${forwardedProto}://${host}` : "";
+  const recycleSrc = origin ? `${origin}/recycle.svg?v=2` : "/recycle.svg?v=2";
+  const IMG_RECYCLE = `<img src="${recycleSrc}" alt="Recycle" width="160" height="160" />`;
   const icon = recycle ? SVG_TRASH + IMG_RECYCLE : SVG_TRASH;
 
   const html = `<!doctype html>
@@ -151,5 +157,9 @@ export default function handler(req, res) {
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store, must-revalidate");
+  if (method === "HEAD") {
+    res.status(200).end();
+    return;
+  }
   res.status(200).send(out);
 }
