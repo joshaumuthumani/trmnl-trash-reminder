@@ -151,9 +151,54 @@ export default function handler(req, res) {
   </div>
 </div>`;
 
+  // Diagnostics mode to help debug TRMNL fetch behavior
+  const diag = String(req.query.diag || "") === "1";
+
   // If TRMNL is expecting JSON, return an envelope { html: "..." }
   if (isFragment) {
-    const body = { html: activeNow ? fragment : fragmentInactive };
+    const fragmentHtml = activeNow ? fragment : fragmentInactive;
+    const body = {
+      ok: true,
+      type: "fragment",
+      mime_type: "text/html",
+      html: fragmentHtml,
+      // Common aliases used by various loaders
+      body: fragmentHtml,
+      fragment: fragmentHtml,
+      content: fragmentHtml,
+      data: { html: fragmentHtml },
+      // Refresh timing aliases
+      refresh_rate: 300,
+      refresh_interval: 300,
+      ttl: 300,
+      updated_at: updatedAt,
+      version: 1,
+      ...(diag
+        ? {
+            diag: {
+              method,
+              headers: {
+                accept: req.headers["accept"],
+                content_type: req.headers["content-type"],
+                user_agent: req.headers["user-agent"],
+                host: req.headers["host"],
+                x_forwarded_proto: req.headers["x-forwarded-proto"],
+                x_forwarded_host: req.headers["x-forwarded-host"],
+              },
+              tz: TZ,
+              now_iso: nowLocal().toISOString(),
+              active_window: {
+                weekday: ACTIVE_WEEKDAY,
+                start: ACTIVE_START,
+                end: ACTIVE_END,
+                is_active_now: activeNow,
+              },
+              recycle: recycle,
+              html_length: fragmentHtml.length,
+            },
+          }
+        : {}),
+    };
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "no-store, must-revalidate");
     res.setHeader("Access-Control-Allow-Origin", "*");
