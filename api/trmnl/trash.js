@@ -44,6 +44,9 @@ export default function handler(req, res) {
   const dateOverride = req.query.date;                         // YYYY-MM-DD
   const localNow = dateOverride ? dayjs.tz(dateOverride, TZ) : nowLocal();
   const updatedAt = localNow.format("MMM D, h:mm a");
+  const startStr = `${String(ACTIVE_START.hour).padStart(2, "0")}:${String(ACTIVE_START.minute).padStart(2, "0")}`;
+  const endStr = `${String(ACTIVE_END.hour).padStart(2, "0")}:${String(ACTIVE_END.minute).padStart(2, "0")}`;
+  const subtitleText = `Sun ${startStr}-${endStr} | Updated ${updatedAt}`; // ASCII-only
 
   const inactive = `<!doctype html>
 <html>
@@ -107,7 +110,7 @@ export default function handler(req, res) {
           <div class="stack">
             <div class="icons">${icon}</div>
             <div class="title">${label}</div>
-            <div class="subtitle">Sun ${String(ACTIVE_START.hour)}:${String(ACTIVE_START.minute).padStart(2,"0")}–${String(ACTIVE_END.hour)}:${String(ACTIVE_END.minute).padStart(2,"0")} • Updated ${updatedAt}</div>
+            <div class="subtitle">${subtitleText}</div>
           </div>
         </div>
         <div class="title_bar">
@@ -130,7 +133,7 @@ export default function handler(req, res) {
       <div class="stack">
         <div class="icons">${icon}</div>
         <div class="title">${label}</div>
-        <div class="subtitle">Sun ${String(ACTIVE_START.hour)}:${String(ACTIVE_START.minute).padStart(2,"0")}–${String(ACTIVE_END.hour)}:${String(ACTIVE_END.minute).padStart(2,"0")} • Updated ${updatedAt}</div>
+        <div class="subtitle">${subtitleText}</div>
       </div>
     </div>
     <div class="title_bar">
@@ -153,20 +156,25 @@ export default function handler(req, res) {
 
   // Diagnostics mode to help debug TRMNL fetch behavior
   const diag = String(req.query.diag || "") === "1";
+  const b64 = String(req.query.b64 || "") === "1";
 
   // If TRMNL is expecting JSON, return an envelope { html: "..." }
   if (isFragment) {
     const fragmentHtml = activeNow ? fragment : fragmentInactive;
+    const htmlOut = fragmentHtml;
     const body = {
       ok: true,
       type: "fragment",
       mime_type: "text/html",
-      html: fragmentHtml,
+      html: htmlOut,
       // Common aliases used by various loaders
-      body: fragmentHtml,
-      fragment: fragmentHtml,
-      content: fragmentHtml,
-      data: { html: fragmentHtml },
+      body: htmlOut,
+      fragment: htmlOut,
+      content: htmlOut,
+      data: { html: htmlOut },
+      ...(b64
+        ? { html_base64: Buffer.from(htmlOut, "utf8").toString("base64"), encoding: "base64" }
+        : {}),
       // Refresh timing aliases
       refresh_rate: 300,
       refresh_interval: 300,
@@ -202,6 +210,7 @@ export default function handler(req, res) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Cache-Control", "no-store, must-revalidate");
     res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("X-Content-Type-Options", "nosniff");
     if (method === "HEAD") {
       res.status(200).end();
       return;
@@ -215,6 +224,7 @@ export default function handler(req, res) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store, must-revalidate");
   res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   if (method === "HEAD") {
     res.status(200).end();
     return;
