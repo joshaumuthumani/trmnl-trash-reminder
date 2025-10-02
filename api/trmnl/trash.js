@@ -151,12 +151,25 @@ export default function handler(req, res) {
   </div>
 </div>`;
 
-  const out = isFragment
-    ? (activeNow ? fragment : fragmentInactive)
-    : (activeNow ? html : inactive);
+  // If TRMNL is expecting JSON, return an envelope { html: "..." }
+  if (isFragment) {
+    const body = { html: activeNow ? fragment : fragmentInactive };
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store, must-revalidate");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    if (method === "HEAD") {
+      res.status(200).end();
+      return;
+    }
+    res.status(200).send(JSON.stringify(body));
+    return;
+  }
+
+  const out = activeNow ? html : inactive;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store, must-revalidate");
+  res.setHeader("Access-Control-Allow-Origin", "*");
   if (method === "HEAD") {
     res.status(200).end();
     return;
