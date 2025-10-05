@@ -146,7 +146,11 @@ export default function handler(req, res) {
   const fragmentInactive = `\
 <div class="screen">
   <div class="view view--full">
-    <div class="layout"></div>
+    <div class="layout wrap">
+      <div class="stack">
+        <div class="subtitle">${subtitleText}</div>
+      </div>
+    </div>
     <div class="title_bar">
       <span class="title">Pickup</span>
       <span class="instance">Inactive</span>
