@@ -7,8 +7,8 @@ dayjs.extend(timezone);
 
 const TZ = "America/Los_Angeles";
 const ACTIVE_WEEKDAY = 0;
-const ACTIVE_START = { hour: 18, minute: 0 };
-const ACTIVE_END = { hour: 20, minute: 30 };
+const ACTIVE_START = { hour: 6, minute: 0 };
+const ACTIVE_END = { hour: 21, minute: 30 };
 const RECYCLE_ANCHOR_SUNDAY = "2025-08-24";
 
 const nowLocal = () => dayjs().tz(TZ);
@@ -142,4 +142,3 @@ export default function handler(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.status(200).send(JSON.stringify(payload));
 }
-
