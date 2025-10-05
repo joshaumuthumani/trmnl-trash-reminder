@@ -8,8 +8,8 @@ dayjs.extend(timezone);
 // ---- CONFIG ----
 const TZ = "America/Los_Angeles";
 const ACTIVE_WEEKDAY = 0;                     // Sunday
-const ACTIVE_START = { hour: 18, minute: 0 }; // 6:00 PM
-const ACTIVE_END   = { hour: 20, minute: 30 };// 8:30 PM
+const ACTIVE_START = { hour: 6, minute: 0 }; // 6:00 PM
+const ACTIVE_END   = { hour: 21, minute: 30 };// 8:30 PM
 const RECYCLE_ANCHOR_SUNDAY = "2025-08-24";   // known T+R Sunday
 
 // ---- HELPERS ----
